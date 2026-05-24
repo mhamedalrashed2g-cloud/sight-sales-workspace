@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGHT Sales Workspace</title>
+<style>
+:root {
+  color-scheme: light;
+  --c0:#f1f5f9; --c1:#e2e8f0; --c2:#94a3b8; --c3:#475569; --c4:#1e293b;
+  --leads:#2563eb; --leads-l:#dbeafe; --leads-d:#1d4ed8;
+  --pitch:#d97706; --pitch-l:#fef3c7; --pitch-d:#b45309;
+  --nego:#ea580c;  --nego-l:#ffedd5;  --nego-d:#c2410c;
+  --closed:#16a34a;--closed-l:#dcfce7;--closed-d:#15803d;
+  --rad:10px; --shadow:0 1px 4px rgba(0,0,0,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--c4);min-height:100vh;direction:rtl}
+
+/* ── HEADER ── */
+.hdr{background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.hdr-brand{display:flex;align-items:center;gap:10px}
+.logo{width:38px;height:38px;background:linear-gradient(135deg,#3b82f6,#06b6d4);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px}
+.hdr-title{font-size:17px;font-weight:700}
+.hdr-sub{font-size:11px;color:#94a3b8;margin-top:1px}
+.hdr-stats{display:flex;gap:12px}
+.stat{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:5px 12px;text-align:center}
+.stat .n{font-size:16px;font-weight:700;color:#38bdf8}
+.stat .l{font-size:10px;color:#94a3b8}
+
+/* ── TOOLBAR ── */
+.tbar{background:#fff;border-bottom:1px solid var(--c1);padding:9px 20px;display:flex;align-items:center;gap:8px}
+.btn{padding:6px 13px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--c1);background:#fff;color:var(--c4);transition:.15s;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:#f1f5f9;border-color:#94a3b8}
+.btn.prim{background:#2563eb;color:#fff;border-color:#2563eb}
+.btn.prim:hover{background:#1d4ed8}
+.btn.danger{background:#fee2e2;color:#dc2626;border-color:#fca5a5}
+.btn.danger:hover{background:#fca5a5}
+.btn.success{background:#dcfce7;color:#15803d;border-color:#86efac}
+.tbar-right{margin-right:auto;display:flex;align-items:center;gap:8px}
+.search{display:flex;align-items:center;gap:6px;background:#f8fafc;border:1px solid var(--c1);border-radius:7px;padding:5px 11px;font-size:13px;color:var(--c2)}
+.search input{border:none;background:transparent;outline:none;font-size:13px;color:var(--c4);width:160px;font-family:inherit}
+
+/* ── BOARD ── */
+.board{display:flex;gap:14px;padding:16px 20px;overflow-x:auto;align-items:flex-start;min-height:calc(100vh - 130px)}
+.col{flex:0 0 280px;display:flex;flex-direction:column;border-radius:12px;background:var(--c0);border:1px solid var(--c1)}
+.col-hdr{padding:12px 14px;border-radius:12px 12px 0 0;color:#fff;display:flex;align-items:center;justify-content:space-between}
+.col-hdr-l{display:flex;align-items:center;gap:7px}
+.col-hdr .title{font-size:14px;font-weight:700}
+.col-hdr .sub{font-size:10px;opacity:.8}
+.col-count{background:rgba(255,255,255,.25);border-radius:20px;padding:2px 9px;font-size:12px;font-weight:700}
+.col-body{padding:10px;display:flex;flex-direction:column;gap:8px;min-height:120px;transition:.2s}
+.col-body.drag-over{background:#e0f2fe;border-radius:0 0 12px 12px}
+
+/* ── CARDS ── */
+.card{background:#fff;border-radius:9px;box-shadow:var(--shadow);padding:12px;cursor:grab;border:2px solid transparent;position:relative;overflow:hidden;transition:.15s}
+.card:hover{box-shadow:0 4px 12px rgba(0,0,0,.13);transform:translateY(-1px)}
+.card.dragging{opacity:.45;cursor:grabbing;transform:rotate(2deg)}
+.card::after{content:'';position:absolute;right:0;top:0;bottom:0;width:3px}
+.col-leads .card::after{background:var(--leads)}
+.col-pitch .card::after{background:var(--pitch)}
+.col-nego  .card::after{background:var(--nego)}
+.col-closed.card::after{background:var(--closed)}
+
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:6px}
+.card-name{font-size:13px;font-weight:700;line-height:1.4;flex:1}
+.badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.badge.high{background:#fee2e2;color:#dc2626}
+.badge.med {background:#fef3c7;color:#b45309}
+.badge.low {background:#dcfce7;color:#15803d}
+.badge.won {background:#dcfce7;color:#15803d}
+.card-co{font-size:11px;color:var(--c2);margin-bottom:6px}
+.card-val{font-size:14px;font-weight:700;margin-bottom:6px}
+.card-val span{font-size:11px;font-weight:400;color:var(--c2)}
+.card-foot{display:flex;justify-content:space-between;align-items:center;padding-top:7px;border-top:1px solid #f1f5f9;margin-top:4px}
+.card-meta{font-size:11px;color:var(--c2);display:flex;gap:8px}
+.card-actions{display:flex;gap:4px;opacity:0;transition:.15s}
+.card:hover .card-actions{opacity:1}
+.icon-btn{width:24px;height:24px;border-radius:5px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:.15s}
+.icon-btn.edit{background:#e0f2fe;color:#0284c7}
+.icon-btn.edit:hover{background:#bae6fd}
+.icon-btn.del{background:#fee2e2;color:#dc2626}
+.icon-btn.del:hover{background:#fca5a5}
+.icon-btn.move{background:#f0fdf4;color:#15803d;font-size:11px;width:auto;padding:0 6px}
+.icon-btn.move:hover{background:#bbf7d0}
+.prog{height:3px;background:var(--c1);border-radius:2px;margin-top:7px;overflow:hidden}
+.prog-fill{height:100%;border-radius:2px}
+.add-btn{margin:0 10px 10px;padding:8px;border:2px dashed var(--c1);border-radius:8px;background:transparent;cursor:pointer;font-size:12px;color:var(--c2);transition:.15s;display:flex;align-items:center;justify-content:center;gap:4px}
+.add-btn:hover{border-color:#93c5fd;color:var(--leads);background:rgba(37,99,235,.04)}
+
+/* ── STAGE COLORS ── */
+.leads-bg{background:linear-gradient(135deg,#1d4ed8,#3b82f6)}
+.pitch-bg {background:linear-gradient(135deg,#b45309,#f59e0b)}
+.nego-bg  {background:linear-gradient(135deg,#c2410c,#f97316)}
+.closed-bg{background:linear-gradient(135deg,#15803d,#22c55e)}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;width:540px;max-width:96vw;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal-hdr{padding:18px 20px 14px;border-bottom:1px solid var(--c1);display:flex;justify-content:space-between;align-items:center}
+.modal-hdr h2{font-size:16px;font-weight:700}
+.modal-close{background:none;border:none;cursor:pointer;font-size:18px;color:var(--c2);border-radius:6px;padding:2px 6px}
+.modal-close:hover{background:#f1f5f9}
+.modal-body{padding:18px 20px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;font-weight:600;color:var(--c2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.form-group input,.form-group select,.form-group textarea{width:100%;border:1px solid var(--c1);border-radius:7px;padding:8px 10px;font-size:13px;color:var(--c4);font-family:inherit;outline:none;transition:.15s;background:#fff}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.form-group textarea{resize:vertical;min-height:70px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;padding-top:14px;border-top:1px solid var(--c1)}
+
+/* detail modal */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.detail-item label{font-size:10px;font-weight:600;color:var(--c2);text-transform:uppercase;display:block;margin-bottom:3px}
+.detail-item .v{font-size:13px;font-weight:600}
+.sec-title{font-size:12px;font-weight:700;color:var(--c4);border-bottom:1px solid var(--c1);padding-bottom:5px;margin-bottom:10px}
+.tasks-list{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.task-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;cursor:pointer;padding:4px;border-radius:5px;transition:.1s}
+.task-item:hover{background:#f8fafc}
+.task-item.done{color:var(--c2);text-decoration:line-through}
+.task-cb{width:17px;height:17px;border:2px solid var(--c1);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:.15s;margin-top:1px}
+.task-item.done .task-cb{background:#16a34a;border-color:#16a34a;color:#fff}
+.notes-box{background:#f8fafc;border-radius:7px;padding:10px;font-size:13px;line-height:1.6;margin-bottom:14px}
+.move-btns{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* ── CONFIRM ── */
+.confirm-box{background:#fff;border-radius:12px;padding:24px;width:320px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.2)}
+.confirm-box h3{font-size:16px;font-weight:700;margin-bottom:8px}
+.confirm-box p{font-size:13px;color:var(--c2);margin-bottom:18px}
+.confirm-btns{display:flex;gap:8px;justify-content:center}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-brand">
+    <div class="logo">S</div>
+    <div>
+      <div class="hdr-title">SIGHT Sales Workspace</div>
+      <div class="hdr-sub">لوحة المبيعات التفاعلية — اسحب وأفلت وعدّل بحرية</div>
+    </div>
+  </div>
+  <div class="hdr-stats">
+    <div class="stat"><div class="n" id="stat-total">22</div><div class="l">إجمالي</div></div>
+    <div class="stat"><div class="n" id="stat-val" style="color:#34d399">0M</div><div class="l">القيمة (ر.س)</div></div>
+    <div class="stat"><div class="n" id="stat-closed" style="color:#86efac">5</div><div class="l">مُغلقة</div></div>
+  </div>
+</div>
+
+<div class="tbar">
+  <button class="btn prim" onclick="openAddCard()">＋ صفقة جديدة</button>
+  <div class="tbar-right">
+    <div class="search">🔍 <input id="searchInput" placeholder="بحث..." oninput="doSearch()"></div>
+  </div>
+</div>
+
+<div class="board" id="board"></div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="overlay" id="formOverlay" onclick="closeIfBg(event,'formOverlay')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h2 id="formTitle">إضافة صفقة جديدة</h2>
+      <button class="modal-close" onclick="closeForm()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>اسم الصفقة / المشروع</label>
+          <input id="f-name" placeholder="مثال: نظام ERP لشركة X">
+        </div>
+        <div class="form-group">
+          <label>اسم الشركة</label>
+          <input id="f-company" placeholder="مثال: شركة النور">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>اسم المسؤول / جهة الاتصال</label>
+          <input id="f-contact" placeholder="مثال: أحمد الغامدي">
+        </div>
+        <div class="form-group">
+          <label>القيمة (ريال سعودي)</label>
+          <input id="f-value" type="number" placeholder="مثال: 250000">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>المرحلة</label>
+          <select id="f-stage">
+            <option value="leads">🔵 عملاء محتملون</option>
+            <option value="pitch">🟡 عروض تقديمية</option>
+            <option value="nego">🟠 تفاوضات</option>
+            <option value="closed">🟢 عقود مُغلقة</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>الأولوية</label>
+          <select id="f-priority">
+            <option value="high">🔴 عاجل</option>
+            <option value="med">🟡 متوسط</option>
+            <option value="low">🟢 منخفض</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>الموعد النهائي</label>
+          <input id="f-deadline" type="date">
+        </div>
+        <div class="form-group">
+          <label>التذكير</label>
+          <select id="f-reminder">
+            <option value="daily">🔔 يومي</option>
+            <option value="weekly">📆 أسبوعي</option>
+            <option value="none">بدون تذكير</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>ملاحظات</label>
+        <textarea id="f-notes" placeholder="أضف تفاصيل وملاحظات عن الصفقة..."></textarea>
+      </div>
+      <div class="form-actions">
+        <button class="btn" onclick="closeForm()">إلغاء</button>
+        <button class="btn prim" onclick="saveCard()">💾 حفظ الصفقة</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="overlay" id="detailOverlay" onclick="closeIfBg(event,'detailOverlay')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h2 id="detailTitle">تفاصيل الصفقة</h2>
+      <button class="modal-close" onclick="document.getElementById('detailOverlay').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <h3>⚠️ حذف الصفقة</h3>
+    <p id="confirmMsg">هل أنت متأكد من حذف هذه الصفقة؟</p>
+    <div class="confirm-btns">
+      <button class="btn" onclick="document.getElementById('confirmOverlay').classList.remove('open')">إلغاء</button>
+      <button class="btn danger" id="confirmOk">حذف</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const STAGES = [
+  { id:'leads',  label:'عملاء محتملون', sub:'Leads',       cls:'leads-bg', color:'var(--leads)' },
+  { id:'pitch',  label:'عروض تقديمية', sub:'Pitch',        cls:'pitch-bg', color:'var(--pitch)' },
+  { id:'nego',   label:'تفاوضات',       sub:'Negotiation', cls:'nego-bg',  color:'var(--nego)'  },
+  { id:'closed', label:'عقود مُغلقة',  sub:'Closed Won',  cls:'closed-bg',color:'var(--closed)'}
+];
+
+let nextId = 100;
+function uid(){ return ++nextId; }
+
+let deals = [
+  // LEADS
+  {id:1, stage:'leads', name:'شركة التقنية المتقدمة — حل إدارة المشاريع', company:'Advanced Tech Co.', contact:'عبدالله الغامدي', value:280000, priority:'high', deadline:'2026-05-28', reminder:'daily', progress:25, notes:'الشركة تبحث عن حل شامل لإدارة مشاريع متعددة. فريق من ٢٠٠ موظف. تعارف في Gitex.', tasks:[{t:'إرسال بريد تعريفي',done:true},{t:'بحث تفصيلي عن الاحتياجات',done:true},{t:'جدولة مكالمة استكشافية',done:false},{t:'إعداد عرض قيمة مخصص',done:false},{t:'إرسال Case Studies',done:false}]},
+  {id:2, stage:'leads', name:'Blue Horizon — منصة CRM للشركات الصغيرة', company:'Blue Horizon SME', contact:'سارة المطيري', value:120000, priority:'high', deadline:'2026-05-22', reminder:'daily', progress:15, notes:'شركة صغيرة (٣٠ موظف) تحتاج CRM بسيطاً مع تكامل WhatsApp.', tasks:[{t:'استلام الإحالة',done:true},{t:'الاتصال الأول ومناقشة الاحتياجات',done:false},{t:'إرسال بروشور المنتج',done:false},{t:'تحديد موعد تجريب مجاني',done:false}]},
+  {id:3, stage:'leads', name:'مجموعة الخليج — أتمتة العمليات الداخلية', company:'Gulf Group', contact:'محمد الشهري', value:450000, priority:'med', deadline:'2026-06-01', reminder:'weekly', progress:40, notes:'مجموعة كبيرة بـ ١٥ فرع في المنطقة الشرقية. مدعوم من CEO مباشرة.', tasks:[{t:'بحث معمق عن الشركة',done:true},{t:'إرسال عرض عام عبر LinkedIn',done:true},{t:'تحديد موعد اجتماع أول',done:false},{t:'إعداد خريطة التحول الرقمي',done:false}]},
+  {id:4, stage:'leads', name:'شركة النور — نظام ERP', company:'Al-Noor Investment', contact:'فيصل القحطاني', value:850000, priority:'low', deadline:'2026-06-05', reminder:'weekly', progress:10, notes:'صفقة كبيرة دورة مبيعات طويلة (٦-١٢ شهر). يقيّمون ٣ موردين.', tasks:[{t:'دراسة هيكل الشركة',done:false},{t:'تحضير خطة تطبيق ERP مرحلية',done:false},{t:'تنظيم جلسة Discovery Workshop',done:false}]},
+  {id:5, stage:'leads', name:'Infinity Solutions — حلول الأمن السيبراني', company:'Infinity Solutions', contact:'نورة العتيبي', value:190000, priority:'med', deadline:'2026-06-10', reminder:'daily', progress:30, notes:'شركة ناشئة Series B. تبحث عن SOC مدار + SIEM.', tasks:[{t:'تلقي طلب عبر الموقع',done:true},{t:'مكالمة استكشافية أولى',done:false},{t:'تقييم متطلبات الأمن',done:false},{t:'إعداد عرض أمني مخصص',done:false}]},
+  {id:6, stage:'leads', name:'مستشفى المدينة — نظام إدارة المرضى', company:'Al-Madinah Hospital', contact:'د. أحمد السالم', value:620000, priority:'high', deadline:'2026-06-03', reminder:'daily', progress:20, notes:'مستشفى ٤٠٠ سرير يريد رقمنة كاملة. متطلبات صارمة SFDA.', tasks:[{t:'استلام المتطلبات الأولية',done:true},{t:'زيارة ميدانية للمستشفى',done:false},{t:'إعداد عرض HIS',done:false},{t:'التحقق من توافق وزارة الصحة',done:false}]},
+  // PITCH
+  {id:7, stage:'pitch', name:'Tech Dynamics — عرض تكامل الأنظمة', company:'Tech Dynamics', contact:'خالد الدوسري', value:340000, priority:'high', deadline:'2026-05-25', reminder:'daily', progress:55, notes:'Demo متأخر! كان ٢٣ مايو لكن تأجيل. الشركة جادة ولديهم ميزانية.', tasks:[{t:'إعداد عرض تقديمي مخصص',done:true},{t:'تجهيز بيئة Demo حية',done:true},{t:'تنفيذ Demo تقني',done:false},{t:'الإجابة على قائمة RFI',done:false},{t:'إرسال Proof of Concept',done:false}]},
+  {id:8, stage:'pitch', name:'شركة الريادة — منصة التحليلات', company:'Al-Riyadah Co.', contact:'منى الحربي', value:220000, priority:'med', deadline:'2026-05-30', reminder:'weekly', progress:70, notes:'العرض نجح بشكل ممتاز. ننتظر موافقة CFO على الميزانية.', tasks:[{t:'إعداد عرض Analytics',done:true},{t:'تجهيز Dashboard تجريبي',done:true},{t:'تنفيذ عرض تقديمي ناجح',done:true},{t:'إرسال ملخص الاجتماع',done:false},{t:'تقديم عرض سعر رسمي',done:false}]},
+  {id:9, stage:'pitch', name:'مجموعة الأفق — حل اللوجستيات', company:'Al-Ufuq Group', contact:'عمر البقمي', value:510000, priority:'high', deadline:'2026-05-26', reminder:'daily', progress:85, notes:'صفقة ساخنة! المدير العام متحمس. منافسنا SAP أعلى سعراً بكثير.', tasks:[{t:'تحليل متطلبات اللوجستيات',done:true},{t:'إعداد عرض سلسلة التوريد',done:true},{t:'عرض للمدير العام',done:true},{t:'عرض تجريبي للفريق التشغيلي',done:false},{t:'تقديم مقترح مالي رسمي',done:false}]},
+  {id:10,stage:'pitch', name:'DataFlow Inc. — منصة إدارة البيانات', company:'DataFlow Inc.', contact:'ريم السعدي', value:180000, priority:'med', deadline:'2026-06-02', reminder:'weekly', progress:60, notes:'CTO تقني بامتياز يريد التفاصيل التقنية. نمو سريع.', tasks:[{t:'Demo للمنصة السحابية',done:true},{t:'متابعة تقييم الفريق التقني',done:false},{t:'إرسال مقارنة بالمنافسين',done:false},{t:'إعداد خطة Migration',done:false}]},
+  {id:11,stage:'pitch', name:'نوادي اللياقة الوطنية — تطبيق الإدارة', company:'National Fitness', contact:'تركي العمري', value:90000, priority:'low', deadline:'2026-06-08', reminder:'weekly', progress:45, notes:'سلسلة ٥ فروع. مدخل لسلاسل أكبر مستقبلاً.', tasks:[{t:'Demo تجريبي للتطبيق',done:true},{t:'إرسال نسخة تجريبية ٣٠ يوماً',done:false},{t:'متابعة بعد أسبوع',done:false}]},
+  {id:12,stage:'pitch', name:'مجمع التسوق الكبير — البيع الرقمي', company:'Grand Mall', contact:'لمى الزهراني', value:260000, priority:'high', deadline:'2026-05-27', reminder:'daily', progress:75, notes:'يريدون تحولاً رقمياً شاملاً. ميزتنا: الدعم العربي والتخصيص.', tasks:[{t:'عرض Omnichannel للإدارة',done:true},{t:'Demo كامل للمنصة',done:true},{t:'اجتماع مع فريق IT',done:false},{t:'تقديم العرض المالي النهائي',done:false}]},
+  // NEGO
+  {id:13,stage:'nego',  name:'شركة الفجر — عقد خدمات ٣ سنوات', company:'Al-Fajr Corp', contact:'بدر الرشيدي', value:980000, priority:'high', deadline:'2026-05-24', reminder:'daily', progress:80, notes:'URGENT! العقد شبه جاهز. الخلاف على غرامات التأخير فقط.', tasks:[{t:'مراجعة مسودة العقد الأولى',done:true},{t:'إرسال ملاحظاتنا القانونية',done:true},{t:'اجتماع تفاوضي',done:true},{t:'مراجعة المسودة المعدّلة',done:false},{t:'التفاوض على شروط SLA',done:false},{t:'الحصول على التوقيع النهائي',done:false}]},
+  {id:14,stage:'nego',  name:'ProBuild — حزمة البناء الذكي', company:'ProBuild SA', contact:'هند الجهني', value:670000, priority:'high', deadline:'2026-05-26', reminder:'daily', progress:70, notes:'يريدون خصماً إضافياً. الخصم الأقصى ١٢٪ حسب هامش الربح.', tasks:[{t:'إرسال العرض المالي الرسمي',done:true},{t:'اجتماع التفاوض الأول',done:true},{t:'إعداد عرض بديل بخصم ١٠٪',done:false},{t:'مناقشة شروط الدفع',done:false}]},
+  {id:15,stage:'nego',  name:'الأكاديمية الوطنية — منظومة التعليم', company:'National Academy', contact:'ياسر الشمري', value:420000, priority:'med', deadline:'2026-05-29', reminder:'weekly', progress:60, notes:'مناقصة حكومية. اجتزنا التقييم الفني ٩٢٪. موقفنا ممتاز.', tasks:[{t:'تقديم عطاء المناقصة',done:true},{t:'اجتياز التقييم الفني',done:true},{t:'التفاوض على السعر مع لجنة الشراء',done:false},{t:'إعداد خطة تدريب المعلمين',done:false}]},
+  {id:16,stage:'nego',  name:'AlGreen Energy — نظام مراقبة الطاقة', company:'AlGreen Energy', contact:'سلمى العتيبي', value:730000, priority:'med', deadline:'2026-06-01', reminder:'weekly', progress:88, notes:'مرتبطة بمشروع NEOM. الخلاف على ملكية الـ IP.', tasks:[{t:'توقيع NDA',done:true},{t:'إرسال العقد الإطاري',done:true},{t:'اجتماع مراجعة شامل',done:true},{t:'تعديل بنود الملكية الفكرية',done:false},{t:'توقيع العقد النهائي',done:false}]},
+  {id:17,stage:'nego',  name:'مركز المدينة الطبي — نظام PACS', company:'City Medical Center', contact:'د. نادية حسين', value:380000, priority:'high', deadline:'2026-05-25', reminder:'daily', progress:92, notes:'عاجل! مراجعة قانونية لامتثال وزارة الصحة. كل شيء شبه جاهز.', tasks:[{t:'موافقة اللجنة الطبية',done:true},{t:'إرسال مسودة العقد',done:true},{t:'مراجعة قانونية امتثال',done:false},{t:'التفاوض على SLA ٩٩.٩٪',done:false}]},
+  // CLOSED
+  {id:18,stage:'closed',name:'✅ المجموعة الذهبية — ERP شامل', company:'Al-Dhahbia Group', contact:'وليد الثبيتي', value:1200000, priority:'won', deadline:'2026-05-15', reminder:'none', progress:100, notes:'تم التوقيع! دورة مبيعات ٨ أشهر. الآن في مرحلة التطبيق.', tasks:[{t:'توقيع العقد الرسمي',done:true},{t:'استلام الدفعة الأولى',done:true},{t:'تعيين فريق التطبيق',done:true},{t:'بدء Discovery & Gap Analysis',done:false}]},
+  {id:19,stage:'closed',name:'✅ شركة النجاح — نظام HR والرواتب', company:'Al-Najah HR', contact:'عائشة الزيد', value:320000, priority:'won', deadline:'2026-05-10', reminder:'none', progress:100, notes:'نجاح كامل! Go-Live ناجح. فرصة Upsell لـ Performance Management.', tasks:[{t:'توقيع العقد',done:true},{t:'تركيب النظام',done:true},{t:'تدريب فريق HR',done:true},{t:'Go-Live ناجح',done:true}]},
+  {id:20,stage:'closed',name:'✅ برج التجارة — إدارة المباني', company:'Trade Tower', contact:'جاسم الكواري', value:560000, priority:'won', deadline:'2026-05-05', reminder:'none', progress:100, notes:'عقد سنتين تم إغلاقه بنجاح. التطبيق جارٍ ٤٠٪.', tasks:[{t:'توقيع العقد',done:true},{t:'تسليم خطة التطبيق',done:true},{t:'بدء المرحلة الأولى',done:true}]},
+  {id:21,stage:'closed',name:'✅ شبكة المدارس الدولية — SIS', company:'International Schools Net', contact:'سوزان حداد', value:280000, priority:'won', deadline:'2026-04-28', reminder:'none', progress:100, notes:'نظام يعمل على ٣ مدارس. فرصة توسيع لمدرستين إضافيتين.', tasks:[{t:'توقيع العقد السنوي',done:true},{t:'تطبيق النظام على ٣ مدارس',done:true},{t:'تدريب ١٥٠ مستخدم',done:true},{t:'Go-Live ناجح',done:true}]},
+  {id:22,stage:'closed',name:'✅ شركة الترحيب — منصة الضيافة', company:'Al-Tarhib Hotels', contact:'مريم العلي', value:440000, priority:'won', deadline:'2026-04-20', reminder:'none', progress:100, notes:'٤ فنادق على المنصة. NPS: ٩/١٠. يريدون ٣ فنادق إضافية في Q3.', tasks:[{t:'توقيع العقد السنوي',done:true},{t:'تكامل مع PMS',done:true},{t:'تدريب موظفي ٤ فنادق',done:true},{t:'Go-Live كامل',done:true}]}
+];
+
+let editingId = null;
+let dragId = null;
+
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+function render(filter=''){
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  STAGES.forEach(stage => {
+    const stageDeals = deals.filter(d => d.stage === stage.id && (!filter || d.name.includes(filter) || d.company.includes(filter) || d.contact.includes(filter)));
+
+    const col = document.createElement('div');
+    col.className = 'col';
+    col.innerHTML = `
+      <div class="col-hdr ${stage.cls}">
+        <div class="col-hdr-l">
+          <div>
+            <div class="title">${stage.label}</div>
+            <div class="sub">${stage.sub}</div>
+          </div>
+        </div>
+        <div class="col-count">${stageDeals.length}</div>
+      </div>
+      <div class="col-body" id="col-${stage.id}"
+        ondragover="onDragOver(event,'${stage.id}')"
+        ondragleave="onDragLeave(event,'${stage.id}')"
+        ondrop="onDrop(event,'${stage.id}')">
+      </div>
+      <button class="add-btn" onclick="openAddCard('${stage.id}')">＋ إضافة صفقة</button>
+    `;
+
+    board.appendChild(col);
+    const body = col.querySelector(`#col-${stage.id}`);
+
+    stageDeals.forEach(d => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.draggable = true;
+      card.dataset.id = d.id;
+
+      const priMap = {high:'badge high',med:'badge med',low:'badge low',won:'badge won'};
+      const priLabel = {high:'عاجل',med:'متوسط',low:'منخفض',won:'مُغلقة ✅'};
+      const remLabel = d.reminder === 'daily' ? '🔔 يومي' : d.reminder === 'weekly' ? '📆 أسبوعي' : '';
+      const fillColor = stage.color;
+
+      // next stage button
+      const stages = ['leads','pitch','nego','closed'];
+      const si = stages.indexOf(d.stage);
+      const nextStage = si < 3 ? stages[si+1] : null;
+      const nextLabel = {leads:'→ Pitch',pitch:'→ تفاوض',nego:'→ مُغلقة'}[d.stage] || '';
+
+      card.innerHTML = `
+        <div class="card-top">
+          <div class="card-name">${d.name}</div>
+          <span class="${priMap[d.priority]}">${priLabel[d.priority]}</span>
+        </div>
+        <div class="card-co">🏢 ${d.company} — ${d.contact}</div>
+        <div class="card-val">${Number(d.value).toLocaleString('ar-SA')} <span>ر.س</span></div>
+        <div class="card-foot">
+          <div class="card-meta">
+            <span>📅 ${d.deadline||'—'}</span>
+            ${remLabel ? `<span>${remLabel}</span>` : ''}
+          </div>
+          <div class="card-actions">
+            ${nextStage ? `<button class="icon-btn move" onclick="event.stopPropagation();moveCard(${d.id},'${nextStage}')">${nextLabel}</button>` : ''}
+            <button class="icon-btn edit" onclick="event.stopPropagation();openEditCard(${d.id})">✏️</button>
+            <button class="icon-btn del" onclick="event.stopPropagation();confirmDelete(${d.id})">🗑</button>
+          </div>
+        </div>
+        <div class="prog"><div class="prog-fill" style="width:${d.progress}%;background:${fillColor}"></div></div>
+      `;
+
+      card.addEventListener('click', () => openDetail(d.id));
+      card.addEventListener('dragstart', e => { dragId = d.id; setTimeout(()=>card.classList.add('dragging'),0); });
+      card.addEventListener('dragend', () => { card.classList.remove('dragging'); dragId = null; });
+
+      body.appendChild(card);
+    });
+  });
+
+  updateStats();
+}
+
+// ══════════════════════════════════════════
+// DRAG & DROP
+// ══════════════════════════════════════════
+function onDragOver(e, stageId){
+  e.preventDefault();
+  document.getElementById('col-'+stageId).classList.add('drag-over');
+}
+function onDragLeave(e, stageId){
+  document.getElementById('col-'+stageId).classList.remove('drag-over');
+}
+function onDrop(e, stageId){
+  e.preventDefault();
+  document.getElementById('col-'+stageId).classList.remove('drag-over');
+  if(dragId == null) return;
+  const deal = deals.find(d=>d.id == dragId);
+  if(deal && deal.stage !== stageId){
+    deal.stage = stageId;
+    render();
+    toast(`تم نقل الصفقة إلى ${STAGES.find(s=>s.id===stageId).label} ✓`);
+  }
+}
+
+// ══════════════════════════════════════════
+// MOVE BUTTON
+// ══════════════════════════════════════════
+function moveCard(id, toStage){
+  const deal = deals.find(d=>d.id===id);
+  if(!deal) return;
+  deal.stage = toStage;
+  render();
+  toast(`تم نقل الصفقة إلى ${STAGES.find(s=>s.id===toStage).label} ✓`);
+}
+
+// ══════════════════════════════════════════
+// ADD / EDIT FORM
+// ══════════════════════════════════════════
+function openAddCard(preStage='leads'){
+  editingId = null;
+  document.getElementById('formTitle').textContent = 'إضافة صفقة جديدة';
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-company').value = '';
+  document.getElementById('f-contact').value = '';
+  document.getElementById('f-value').value = '';
+  document.getElementById('f-stage').value = preStage;
+  document.getElementById('f-priority').value = 'med';
+  document.getElementById('f-deadline').value = '';
+  document.getElementById('f-reminder').value = 'daily';
+  document.getElementById('f-notes').value = '';
+  document.getElementById('formOverlay').classList.add('open');
+}
+
+function openEditCard(id){
+  const d = deals.find(x=>x.id===id);
+  if(!d) return;
+  editingId = id;
+  document.getElementById('formTitle').textContent = 'تعديل الصفقة';
+  document.getElementById('f-name').value = d.name;
+  document.getElementById('f-company').value = d.company;
+  document.getElementById('f-contact').value = d.contact;
+  document.getElementById('f-value').value = d.value;
+  document.getElementById('f-stage').value = d.stage;
+  document.getElementById('f-priority').value = d.priority;
+  document.getElementById('f-deadline').value = d.deadline||'';
+  document.getElementById('f-reminder').value = d.reminder||'none';
+  document.getElementById('f-notes').value = d.notes||'';
+  document.getElementById('formOverlay').classList.add('open');
+  document.getElementById('detailOverlay').classList.remove('open');
+}
+
+function saveCard(){
+  const name = document.getElementById('f-name').value.trim();
+  if(!name){ alert('يرجى إدخال اسم الصفقة'); return; }
+  if(editingId){
+    const d = deals.find(x=>x.id===editingId);
+    d.name = name;
+    d.company = document.getElementById('f-company').value.trim() || d.company;
+    d.contact = document.getElementById('f-contact').value.trim() || d.contact;
+    d.value = Number(document.getElementById('f-value').value) || d.value;
+    d.stage = document.getElementById('f-stage').value;
+    d.priority = document.getElementById('f-priority').value;
+    d.deadline = document.getElementById('f-deadline').value;
+    d.reminder = document.getElementById('f-reminder').value;
+    d.notes = document.getElementById('f-notes').value;
+    toast('تم تحديث الصفقة ✓');
+  } else {
+    deals.push({
+      id: uid(), stage: document.getElementById('f-stage').value,
+      name, company: document.getElementById('f-company').value.trim(),
+      contact: document.getElementById('f-contact').value.trim(),
+      value: Number(document.getElementById('f-value').value)||0,
+      priority: document.getElementById('f-priority').value,
+      deadline: document.getElementById('f-deadline').value,
+      reminder: document.getElementById('f-reminder').value,
+      notes: document.getElementById('f-notes').value,
+      progress: 10, tasks:[]
+    });
+    toast('تمت إضافة الصفقة بنجاح ✓');
+  }
+  closeForm();
+  render();
+}
+
+function closeForm(){
+  document.getElementById('formOverlay').classList.remove('open');
+}
+
+// ══════════════════════════════════════════
+// DELETE
+// ══════════════════════════════════════════
+function confirmDelete(id){
+  const d = deals.find(x=>x.id===id);
+  document.getElementById('confirmMsg').textContent = `هل تريد حذف صفقة "${d.name}"؟`;
+  document.getElementById('confirmOk').onclick = () => {
+    deals = deals.filter(x=>x.id!==id);
+    document.getElementById('confirmOverlay').classList.remove('open');
+    document.getElementById('detailOverlay').classList.remove('open');
+    render();
+    toast('تم حذف الصفقة');
+  };
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+
+// ══════════════════════════════════════════
+// DETAIL VIEW
+// ══════════════════════════════════════════
+function openDetail(id){
+  const d = deals.find(x=>x.id===id);
+  if(!d) return;
+  const stage = STAGES.find(s=>s.id===d.stage);
+
+  const stages = ['leads','pitch','nego','closed'];
+  const si = stages.indexOf(d.stage);
+
+  let moveBtnsHTML = '';
+  stages.forEach((s,i) => {
+    if(s !== d.stage){
+      const sl = STAGES.find(x=>x.id===s);
+      moveBtnsHTML += `<button class="btn" style="font-size:12px" onclick="moveCard(${d.id},'${s}');document.getElementById('detailOverlay').classList.remove('open')">${sl.label}</button>`;
+    }
+  });
+
+  const tasksHTML = d.tasks.map((t,i) => `
+    <div class="task-item ${t.done?'done':''}" onclick="toggleTask(${d.id},${i})">
+      <div class="task-cb">${t.done?'✓':''}</div>
+      <span>${t.t}</span>
+    </div>`).join('');
+
+  const priLabel = {high:'🔴 عاجل',med:'🟡 متوسط',low:'🟢 منخفض',won:'✅ مُغلقة'};
+
+  document.getElementById('detailTitle').textContent = d.name;
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail-grid">
+      <div class="detail-item"><label>الشركة</label><div class="v">🏢 ${d.company}</div></div>
+      <div class="detail-item"><label>جهة الاتصال</label><div class="v">👤 ${d.contact}</div></div>
+      <div class="detail-item"><label>القيمة</label><div class="v" style="color:var(--closed);font-size:16px">${Number(d.value).toLocaleString('ar-SA')} ر.س</div></div>
+      <div class="detail-item"><label>الأولوية</label><div class="v">${priLabel[d.priority]||d.priority}</div></div>
+      <div class="detail-item"><label>المرحلة الحالية</label><div class="v" style="color:${stage.color}">${stage.label}</div></div>
+      <div class="detail-item"><label>الموعد النهائي</label><div class="v">📅 ${d.deadline||'—'}</div></div>
+    </div>
+
+    <div class="sec-title">📋 المهام (${d.tasks.filter(t=>t.done).length}/${d.tasks.length})</div>
+    <div class="tasks-list" id="tasks-${d.id}">${tasksHTML || '<div style="color:var(--c2);font-size:13px">لا توجد مهام بعد</div>'}</div>
+
+    ${d.notes ? `<div class="sec-title">📝 ملاحظات</div><div class="notes-box">${d.notes}</div>` : ''}
+
+    <div class="sec-title">🔀 نقل الصفقة إلى مرحلة أخرى</div>
+    <div class="move-btns" style="margin-bottom:16px">${moveBtnsHTML}</div>
+
+    <div style="display:flex;gap:8px">
+      <button class="btn prim" onclick="openEditCard(${d.id})" style="flex:1">✏️ تعديل الصفقة</button>
+      <button class="btn danger" onclick="confirmDelete(${d.id})">🗑 حذف</button>
+    </div>
+  `;
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+function toggleTask(dealId, taskIdx){
+  const d = deals.find(x=>x.id===dealId);
+  if(!d || !d.tasks[taskIdx]) return;
+  d.tasks[taskIdx].done = !d.tasks[taskIdx].done;
+  // update progress
+  d.progress = d.tasks.length ? Math.round(d.tasks.filter(t=>t.done).length/d.tasks.length*100) : d.progress;
+  openDetail(dealId);
+  render(document.getElementById('searchInput').value);
+}
+
+// ══════════════════════════════════════════
+// SEARCH
+// ══════════════════════════════════════════
+function doSearch(){
+  render(document.getElementById('searchInput').value.trim());
+}
+
+// ══════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════
+function updateStats(){
+  document.getElementById('stat-total').textContent = deals.length;
+  const total = deals.reduce((s,d)=>s+d.value,0);
+  document.getElementById('stat-val').textContent = (total/1000000).toFixed(1)+'M';
+  document.getElementById('stat-closed').textContent = deals.filter(d=>d.stage==='closed').length;
+}
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+function closeIfBg(e, id){
+  if(e.target === document.getElementById(id))
+    document.getElementById(id).classList.remove('open');
+}
+
+let toastTimer;
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 2500);
+}
+
+// ── INIT ──
+render();
+</script>
+</body>
+</html>
